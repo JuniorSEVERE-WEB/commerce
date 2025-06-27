@@ -3,24 +3,43 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 
 from .models import User, Category, Listing
 
 
+
+
 def listing(request, id):
-    listingData  = Listing.objects.get(pk=id)
-    isListingWatchList = False
+    listingData = get_object_or_404(Listing, pk=id)  # Retourne une 404 si le listing n'existe pas
+    isListingWatchList = request.user in listingData.watchlist.all()
     return render(request, "auctions/listing.html", {
         "listing": listingData,
         "isListingInWatchlist": isListingWatchList
     })
+def all_listings(request):
+    listings = Listing.objects.all()
+    return HttpResponse(f"Listings: {listings}")
+
+def displayWacthlist(request):
+    currentUser = request.user 
+    listings = currentUser.watching_listings.all()
+    return render(request, "auctions/watchlist.html", {
+        "listings": listings
+    })
 
 def removeWatchlist(request, id):
-    return
+    listingData = Listing.objects.get(pk=id)
+    currentUser = request.user 
+    listingData.watchlist.remove(currentUser)
+    return HttpResponseRedirect(reverse("listing", args=(id, )))
 
 def addWatchlist(request, id):
-    return
+    listingData = Listing.objects.get(pk=id)
+    currentUser = request.user 
+    listingData.watchlist.add(currentUser)
+    return HttpResponseRedirect(reverse("listing", args=(id, )))
 
 
 def index(request):
