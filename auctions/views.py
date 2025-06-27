@@ -5,15 +5,72 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import User
+from .models import User, Category, Listing
+
+
+def listing(request, id):
+    listingData  = Listing.objects.get(pk=id)
+    return render(request, "auctions/listing.html", {
+        "listing": listingData
+    })
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    activeListings = Listing.objects.filter(isActive=True)
+    allCategories = Category.objects.all()
+    
+    if request.method == "POST":
+        try:
+            categoryFromForm = request.POST["category"]
+            category = Category.objects.get(categoryName=categoryFromForm)
+            activeListings = activeListings.filter(category=category)
+        except (KeyError, Category.DoesNotExist):
+            pass
+    
+    return render(request, "auctions/index.html", {
+        "Listings": activeListings,
+        "categories": allCategories
+    })
+
+def displayCategory(request):
+    if request.method == "POST":
+        categoryFromForm = request.POST["category"]
+        category = Category.objects.get(categoryName=categoryFromForm)
+        activeListings = Listing.objects.filter(isActive=True, category=category)
+    else:
+        activeListings = Listing.objects.filter(isActive=True)
+    
+    allCategories = Category.objects.all()
+    return render(request, "auctions/index.html", {
+        "Listings": activeListings,
+        "categories": allCategories
+    })
 
 def createListing(request):
     if request.method == "GET":
-        return render(request, "auctions/create.html")
+        allCategories = Category.objects.all()
+        return render(request, "auctions/create.html", {
+            "categories": allCategories
+        })
+    else:
+        title = request.POST["title"]
+        description = request.POST["description"]
+        imageurl = request.POST["imageurl"]
+        price = request.POST["price"]
+        category = request.POST["category"]
+        currentUser = request.user
+        categoryData = Category.objects.get(categoryName=category)
+        newListing = Listing(
+            title= title, 
+            description=description,
+            imageUrl=imageurl,
+            price=float(price),
+            category=categoryData,
+            owner = currentUser
+        )
+        newListing.save()
+        return HttpResponseRedirect(reverse(index))
+
 
 
 def login_view(request):
