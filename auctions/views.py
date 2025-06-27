@@ -10,9 +10,17 @@ from .models import User, Category, Listing
 
 def listing(request, id):
     listingData  = Listing.objects.get(pk=id)
+    isListingWatchList = False
     return render(request, "auctions/listing.html", {
-        "listing": listingData
+        "listing": listingData,
+        "isListingInWatchlist": isListingWatchList
     })
+
+def removeWatchlist(request, id):
+    return
+
+def addWatchlist(request, id):
+    return
 
 
 def index(request):
