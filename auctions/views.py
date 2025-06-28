@@ -15,15 +15,39 @@ def listing(request, id):
     listingData = get_object_or_404(Listing, pk=id)  # Retourne une 404 si le listing n'existe pas
     isListingWatchList = request.user in listingData.watchlist.all()
     allComments = Comments.objects.filter(listing=listingData)
+    isOwner=request.user.username == listingData.owner.username
     return render(request, "auctions/listing.html", {
         "listing": listingData,
         "isListingInWatchlist": isListingWatchList,
-        "allComments": allComments
+        "allComments": allComments,
+        "isOwner":isOwner
     })
+
+def closeAuction(request, id):
+    listingData = Listing.objects.get(pk=id)
+    listingData.isActive = False 
+    listingData.save()
+    isListingWatchList = request.user in listingData.watchlist.all()
+    allComments = Comments.objects.filter(listing=listingData)
+    isOwner=request.user.username == listingData.owner.username
+
+    return render(request, "auctions/listing.html", {
+    "listing": listingData,
+    "isListingInWatchlist": isListingWatchList,
+    "allComments": allComments,
+    "isOwner":isOwner,
+    "update":True,
+    "message": "Congratulations! Your auction is closed."
+    })
+
+
 
 def addBid(request, id):
     newBid = request.POST["newBid"]
     listingData = Listing.objects.get(pk=id)
+    isListingWatchList = request.user in listingData.watchlist.all()
+    allComments = Comments.objects.filter(listing=listingData)
+    isOwner=request.user.username == listingData.owner.username
     if int(newBid) > listingData.price.bid:
         updateBid = Bid(user=request.user, bid=int(newBid))
         updateBid.save()
@@ -32,13 +56,20 @@ def addBid(request, id):
         return render(request, "auctions/listing.html", {
             "listing": listingData,
             "message": "Bid  updated successfully",
-            "update": True
+            "update": True,
+            "isListingInWatchlist": isListingWatchList,
+            "allComments": allComments,
+            "isOwner":isOwner,
+
         })
     else:
             return render(request, "auctions/listing.html", {
             "listing": listingData,
             "message": "Bid updated failed",
-            "update": False
+            "update": False,
+            "isListingInWatchlist": isListingWatchList,
+            "allComments": allComments,
+            "isOwner":isOwner,
         })
 
 
