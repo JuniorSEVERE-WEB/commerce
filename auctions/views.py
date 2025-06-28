@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import User, Category, Listing
+from .models import User, Category, Listing, Comments, Bid
 
 
 
@@ -14,10 +14,45 @@ from .models import User, Category, Listing
 def listing(request, id):
     listingData = get_object_or_404(Listing, pk=id)  # Retourne une 404 si le listing n'existe pas
     isListingWatchList = request.user in listingData.watchlist.all()
+    allComments = Comments.objects.filter(listing=listingData)
     return render(request, "auctions/listing.html", {
         "listing": listingData,
-        "isListingInWatchlist": isListingWatchList
+        "isListingInWatchlist": isListingWatchList,
+        "allComments": allComments
     })
+
+def addBid(request, id):
+    newBid = request.POST["newBid"]
+    listingData = Listing.objects.get(pk=id)
+    if int(newBid) > listingData.price.bid:
+        updateBid = Bid(user=request.user, bid=int(newBid))
+        updateBid.save()
+        listingData.price = updateBid 
+        listingData.save()
+        return render(request, "auctions/listing.html", {
+            "listing": listingData,
+            "message": "Bid  updated successfully",
+            "update": True
+        })
+    else:
+            return render(request, "auctions/listing.html", {
+            "listing": listingData,
+            "message": "Bid updated failed",
+            "update": False
+        })
+
+
+def addComment(request, id):
+    currentUser = request.user
+    listingData = Listing.objects.get(pk=id)
+    message = request.POST['newComment']
+    newComment = Comments(
+        author = currentUser,
+        listing=listingData, 
+        message=message
+    )
+    newComment.save()
+    return HttpResponseRedirect(reverse("listing", args=(id, )))
 def all_listings(request):
     listings = Listing.objects.all()
     return HttpResponse(f"Listings: {listings}")
@@ -72,7 +107,6 @@ def displayCategory(request):
         "Listings": activeListings,
         "categories": allCategories
     })
-
 def createListing(request):
     if request.method == "GET":
         allCategories = Category.objects.all()
@@ -82,21 +116,26 @@ def createListing(request):
     else:
         title = request.POST["title"]
         description = request.POST["description"]
-        imageurl = request.POST["imageurl"]
+        imageurl = request.POST["imageurl"] # 'imageurl' pour correspondre à votre formulaire
         price = request.POST["price"]
         category = request.POST["category"]
         currentUser = request.user
         categoryData = Category.objects.get(categoryName=category)
+
+        bid = Bid(bid=float(price), user=currentUser)
+        bid.save()
+
         newListing = Listing(
-            title= title, 
+            title=title, 
             description=description,
-            imageUrl=imageurl,
-            price=float(price),
+            imageUrl=imageurl, # Assurez-vous que c'est bien 'imageUrl'
+            price=bid, # La parenthèse fermante était en trop ici
             category=categoryData,
-            owner = currentUser
-        )
+            owner=currentUser,
+        ) # Cette parenthèse fermait la définition de Listing
         newListing.save()
-        return HttpResponseRedirect(reverse(index))
+        return HttpResponseRedirect(reverse("index")) # Utilisez le nom de la vue "index"
+
 
 
 
