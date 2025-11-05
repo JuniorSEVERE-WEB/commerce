@@ -88,29 +88,70 @@ def all_listings(request):
     listings = Listing.objects.all()
     return HttpResponse(f"Listings: {listings}")
 
-def displayWacthlist(request):
+def displayWatchlist(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("login"))
+    
     currentUser = request.user 
-    listings = currentUser.watching_listings.all()
+    listings = currentUser.watching_listings.all().order_by('-id')
+    
+    # Séparer les annonces actives et fermées
+    active_listings = listings.filter(isActive=True)
+    closed_listings = listings.filter(isActive=False)
+    
     return render(request, "auctions/watchlist.html", {
-        "listings": listings
+        "listings": listings,
+        "active_listings": active_listings,
+        "closed_listings": closed_listings,
+        "total_count": listings.count()
     })
 
 def removeWatchlist(request, id):
-    listingData = Listing.objects.get(pk=id)
-    currentUser = request.user 
-    listingData.watchlist.remove(currentUser)
-    return HttpResponseRedirect(reverse("listing", args=(id, )))
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("login"))
+    
+    try:
+        listingData = get_object_or_404(Listing, pk=id)
+        currentUser = request.user 
+        
+        if currentUser in listingData.watchlist.all():
+            listingData.watchlist.remove(currentUser)
+            
+        # Rediriger vers la watchlist si on vient de là, sinon vers le listing
+        if 'watchlist' in request.META.get('HTTP_REFERER', ''):
+            return HttpResponseRedirect(reverse("watchlist"))
+        else:
+            return HttpResponseRedirect(reverse("listing", args=(id, )))
+            
+    except Listing.DoesNotExist:
+        return HttpResponseRedirect(reverse("index"))
 
 def addWatchlist(request, id):
-    listingData = Listing.objects.get(pk=id)
-    currentUser = request.user 
-    listingData.watchlist.add(currentUser)
-    return HttpResponseRedirect(reverse("listing", args=(id, )))
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("login"))
+    
+    try:
+        listingData = get_object_or_404(Listing, pk=id)
+        currentUser = request.user 
+        
+        # Vérifier que l'utilisateur n'est pas déjà dans la watchlist
+        if currentUser not in listingData.watchlist.all():
+            listingData.watchlist.add(currentUser)
+            
+        return HttpResponseRedirect(reverse("listing", args=(id, )))
+        
+    except Listing.DoesNotExist:
+        return HttpResponseRedirect(reverse("index"))
 
 
 def index(request):
     activeListings = Listing.objects.filter(isActive=True)
     allCategories = Category.objects.all()
+    
+    # Récupérer les watchlists de l'utilisateur connecté
+    user_watchlist_ids = []
+    if request.user.is_authenticated:
+        user_watchlist_ids = list(request.user.watching_listings.values_list('id', flat=True))
     
     if request.method == "POST":
         try:
@@ -122,7 +163,8 @@ def index(request):
     
     return render(request, "auctions/index.html", {
         "Listings": activeListings,
-        "categories": allCategories
+        "categories": allCategories,
+        "user_watchlist_ids": user_watchlist_ids
     })
 
 def displayCategory(request):

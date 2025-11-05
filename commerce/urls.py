@@ -15,8 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from auctions.admin import admin_site
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("commercehub-admin/", admin_site.urls),
     path("", include("auctions.urls"))
 ]

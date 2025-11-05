@@ -1,0 +1,78 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | CommerceHub Administration{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}" style="text-decoration: none; color: #0d6efd;">
+        <i class="fas fa-store" style="margin-right: 0.5rem;"></i>
+        CommerceHub Admin
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}
+<div style="background: #0d6efd; padding: 0.5rem 1rem; margin-bottom: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+        <div>
+            <a href="{% url 'index' %}" style="color: white; text-decoration: none; margin-right: 1rem;">
+                <i class="fas fa-home" style="margin-right: 0.25rem;"></i>
+                Retour au site
+            </a>
+        </div>
+        <div style="color: white;">
+            <i class="fas fa-user-shield" style="margin-right: 0.25rem;"></i>
+            Connecté en tant que <strong>{{ user.username }}</strong>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    /* Personnalisation de l'interface admin */
+    .module h2, .module caption, .inline-group h2 {
+        background: #0d6efd;
+        color: white;
+    }
+    
+    .button, input[type=submit], input[type=button], .submit-row input, .btn {
+        background: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover {
+        background: #0b5ed7;
+        border-color: #0a58ca;
+    }
+    
+    .selector-chosen h2 {
+        background: #28a745;
+    }
+    
+    #header {
+        background: #f8f9fa;
+        border-bottom: 3px solid #0d6efd;
+    }
+    
+    .breadcrumbs {
+        background: #e9ecef;
+    }
+    
+    /* Statistiques sur le tableau de bord */
+    .dashboard .module table {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard .module {
+        margin-bottom: 20px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

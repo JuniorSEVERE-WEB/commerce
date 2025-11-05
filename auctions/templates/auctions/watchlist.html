@@ -1,17 +1,184 @@
 {% extends "auctions/layout.html" %}
 
+{% block title %}Ma Watchlist - CommerceHub{% endblock %}
+
 {% block body %}
-    <h2>Watchlist</h2>
- <div class="row mx-3">
-    {% for listing in listings %}
-        <div class="card mx-3" style="width: 18rem;">
-            <img src="{{ listing.imageUrl }}" class="card-img-top" alt="{{ listing.title }}">
-            <div class="card-body">
-                <h5 class="card-title">{{ listing.title }}</h5>
-                <p class="card-text">{{ listing.description }}</p>
-                <a href="{% url "listing" id=listing.id %}" class="btn btn-primary">Details</a>
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="display-5 fw-bold text-primary mb-2">
+                        <i class="fas fa-heart me-3"></i>Ma Watchlist
+                    </h1>
+                    <p class="lead text-muted">
+                        Suivez vos annonces préférées et ne ratez aucune enchère
+                    </p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-primary fs-6 px-3 py-2">
+                        {{ listings.count }} article{{ listings.count|pluralize }}
+                    </span>
+                </div>
             </div>
-        </div> 
-    {% endfor %}
-</div>    
+        </div>
+    </div>
+
+    {% if listings %}
+        <!-- Listings Grid -->
+        <div class="row g-4">
+            {% for listing in listings %}
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                    <div class="card h-100 shadow-sm listing-card">
+                        <!-- Image Container -->
+                        <div class="position-relative">
+                            {% if listing.imageUrl %}
+                                <img src="{{ listing.imageUrl }}" 
+                                     class="card-img-top listing-image" 
+                                     alt="{{ listing.title }}"
+                                     style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                     style="height: 200px;">
+                                    <i class="fas fa-image text-muted fa-3x"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Status Badge -->
+                            {% if listing.isActive %}
+                                <span class="position-absolute top-0 end-0 m-2 badge bg-success">
+                                    <i class="fas fa-fire me-1"></i>Actif
+                                </span>
+                            {% else %}
+                                <span class="position-absolute top-0 end-0 m-2 badge bg-secondary">
+                                    <i class="fas fa-lock me-1"></i>Fermé
+                                </span>
+                            {% endif %}
+
+                            <!-- Remove from Watchlist Button -->
+                            <div class="position-absolute top-0 start-0 m-2">
+                                <a href="{% url 'removeWatchlist' id=listing.id %}" 
+                                   class="btn btn-sm btn-light rounded-circle shadow-sm"
+                                   title="Retirer de la watchlist">
+                                    <i class="fas fa-heart-broken text-danger"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate mb-2" title="{{ listing.title }}">
+                                {{ listing.title }}
+                            </h5>
+                            
+                            <p class="card-text text-muted flex-grow-1" style="font-size: 0.9rem;">
+                                {{ listing.description|truncatewords:15 }}
+                            </p>
+
+                            <!-- Price and Category Info -->
+                            <div class="mt-auto">
+                                {% if listing.price %}
+                                    <div class="mb-2">
+                                        <span class="h5 text-success mb-0">
+                                            {{ listing.price.bid }}€
+                                        </span>
+                                        <small class="text-muted d-block">Prix actuel</small>
+                                    </div>
+                                {% endif %}
+
+                                {% if listing.category %}
+                                    <div class="mb-3">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-tag me-1"></i>
+                                            {{ listing.category.categoryName }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Action Buttons -->
+                                <div class="d-grid">
+                                    <a href="{% url 'listing' id=listing.id %}" 
+                                       class="btn btn-primary">
+                                        <i class="fas fa-eye me-2"></i>
+                                        Voir les détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination (if needed later) -->
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <p class="text-muted">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Cliquez sur une annonce pour voir tous les détails et enchérir
+                </p>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Empty Watchlist State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-heart-broken text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="text-muted mb-3">Votre watchlist est vide</h3>
+                    <p class="text-muted mb-4">
+                        Parcourez les annonces et ajoutez vos articles préférés à votre watchlist pour les suivre facilement.
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'index' %}" class="btn btn-primary">
+                            <i class="fas fa-shopping-bag me-2"></i>
+                            Parcourir les annonces
+                        </a>
+                        <a href="{% url 'create' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Créer une annonce
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.listing-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.listing-image {
+    transition: transform 0.3s ease;
+}
+
+.listing-card:hover .listing-image {
+    transform: scale(1.05);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+@media (max-width: 576px) {
+    .display-5 {
+        font-size: 2rem;
+    }
+    
+    .listing-card .card-body {
+        padding: 1rem;
+    }
+}
+</style>
 {% endblock %}

@@ -1,46 +1,248 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
     <head>
-        <title>{% block title %}Auctions{% endblock %}</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-        <link href="{% static 'auctions/styles.css' %}" rel="stylesheet">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}CommerceHub - Votre Marketplace{% endblock %}</title>
+        
+        <!-- Bootstrap 5 CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Font Awesome Icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        
+        <link href="{% static 'auctions/styles_new.css' %}" rel="stylesheet">
     </head>
     <body>
-        <h1>Auctions</h1>
-        <div>
-            {% if user.is_authenticated %}
-                Signed in as <strong>{{ user.username }}</strong>.
-            {% else %}
-                Not signed in.
-            {% endif %}
-        </div>
-        <ul class="nav">
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
-            </li>
-            {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'create' %}">Create Listing</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                </li>
-            {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'register' %}">Register</a>
-                </li>
-            {% endif %}
-        </ul>
-        <hr>
-        {% block body %}
+        <!-- Header Navigation Simple et Efficace -->
+        <header class="custom-header">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container">
+                    <!-- Logo -->
+                    <a class="navbar-brand fw-bold text-primary" href="{% url 'index' %}">
+                        <i class="fas fa-store me-2"></i>
+                        CommerceHub
+                    </a>
+
+                    <!-- Mobile Toggle -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <!-- Navigation Links -->
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold" href="{% url 'index' %}">
+                                    <i class="fas fa-home me-1"></i>
+                                    Annonces Actives
+                                </a>
+                            </li>
+                            {% if user.is_authenticated %}
+                                <li class="nav-item">
+                                    <a class="nav-link fw-semibold" href="{% url 'create' %}">
+                                        <i class="fas fa-plus-circle me-1"></i>
+                                        Créer une Annonce
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link fw-semibold" href="{% url 'watchlist' %}">
+                                        <i class="fas fa-heart me-1"></i>
+                                        Ma Watchlist
+                                    </a>
+                                </li>
+                            {% endif %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-th-large me-1"></i>
+                                    Catégories
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}">
+                                        <i class="fas fa-th me-2"></i>Toutes les catégories
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}?category=Electronics">
+                                        <i class="fas fa-laptop me-2"></i>Électronique
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}?category=Fashion">
+                                        <i class="fas fa-tshirt me-2"></i>Mode
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}?category=Sports">
+                                        <i class="fas fa-dumbbell me-2"></i>Sports
+                                    </a></li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                        <!-- User Section -->
+                        <div class="d-flex align-items-center">
+                            {% if user.is_authenticated %}
+                                <span class="me-3 text-muted">
+                                    <i class="fas fa-user-circle me-1"></i>
+                                    Bonjour, <strong class="text-primary">{{ user.username }}</strong>
+                                </span>
+                                {% if user.is_staff %}
+                                    <a href="/admin/" class="btn btn-warning btn-sm me-2" target="_blank">
+                                        <i class="fas fa-cog me-1"></i>
+                                        Administration
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-sign-out-alt me-1"></i>
+                                    Déconnexion
+                                </a>
+                            {% else %}
+                                <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm me-2">
+                                    <i class="fas fa-sign-in-alt me-1"></i>
+                                    Connexion
+                                </a>
+                                <a href="{% url 'register' %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-user-plus me-1"></i>
+                                    S'inscrire
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                {% block body %}
+                {% endblock %}
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer mt-5">
+            <div class="container">
+                <div class="row py-4">
+                    <div class="col-md-4 mb-3">
+                        <h5 class="text-primary">
+                            <i class="fas fa-store me-2"></i>
+                            CommerceHub
+                        </h5>
+                        <p class="text-muted mb-0">
+                            Votre marketplace de confiance pour acheter et vendre en toute sécurité.
+                        </p>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <h6>Liens rapides</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="{% url 'index' %}" class="text-muted">Accueil</a></li>
+                            <li><a href="{% url 'all_listings' %}" class="text-muted">Annonces</a></li>
+                            <li><a href="#" class="text-muted">À propos</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <h6>Support</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="text-muted">Aide</a></li>
+                            <li><a href="#" class="text-muted">Contact</a></li>
+                            <li><a href="#" class="text-muted">CGV</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h6>Suivez-nous</h6>
+                        <div class="social-links">
+                            <a href="#" class="text-muted me-3">
+                                <i class="fab fa-facebook fa-lg"></i>
+                            </a>
+                            <a href="#" class="text-muted me-3">
+                                <i class="fab fa-twitter fa-lg"></i>
+                            </a>
+                            <a href="#" class="text-muted me-3">
+                                <i class="fab fa-instagram fa-lg"></i>
+                            </a>
+                            <a href="#" class="text-muted">
+                                <i class="fab fa-linkedin fa-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-0">
+                            &copy; 2025 CommerceHub. Tous droits réservés.
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="payment-methods">
+                            <i class="fab fa-cc-visa text-primary me-2"></i>
+                            <i class="fab fa-cc-mastercard text-warning me-2"></i>
+                            <i class="fab fa-cc-paypal text-info me-2"></i>
+                            <i class="fas fa-shield-alt text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Bootstrap 5 JS Bundle -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <!-- Custom JavaScript -->
+        <script>
+            // Search functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                // Add smooth scrolling
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        document.querySelector(this.getAttribute('href')).scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    });
+                });
+
+                // Add animation to cards on scroll
+                const observerOptions = {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                };
+
+                const observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('fade-in');
+                        }
+                    });
+                }, observerOptions);
+
+                document.querySelectorAll('.card, .listing-card').forEach(card => {
+                    observer.observe(card);
+                });
+
+                // Auto-dismiss alerts after 5 seconds
+                setTimeout(function() {
+                    const alerts = document.querySelectorAll('.alert');
+                    alerts.forEach(alert => {
+                        if (alert.classList.contains('show')) {
+                            const bsAlert = new bootstrap.Alert(alert);
+                            bsAlert.close();
+                        }
+                    });
+                }, 5000);
+            });
+        </script>
+
+        {% block scripts %}
         {% endblock %}
     </body>
 </html>
