@@ -1,27 +1,268 @@
 {% extends "auctions/layout.html" %}
 
+{% block title %}Annonces Actives - CommerceHub{% endblock %}
+
 {% block body %}
-    <h2>Active Listings</h2>
-    <form action="{% url "index" %}" method="POST" class="my-3">
-        {% csrf_token %}
-            <label for="category">Choose a category:</label>
-            <select name="category" id="category">
-               {% for cat in categories %}
-                <option value="{{ cat.categoryName }}">{{ cat.categoryName }}</option>
-               {% endfor  %} 
-            </select>
-            <button type="submit" class="btn btn-warning">Select</button>
-    </form>    
- <div class="row mx-3">
-    {% for listing in Listings %}
-        <div class="card mx-3" style="width: 18rem;">
-            <img src="{{ listing.imageUrl }}" class="card-img-top" alt="{{ listing.title }}">
-            <div class="card-body">
-                <h5 class="card-title">{{ listing.title }}</h5>
-                <p class="card-text">{{ listing.description }}</p>
-                <a href="{% url "listing" id=listing.id %}" class="btn btn-primary">Details</a>
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="mb-3 mb-md-0">
+                    <h1 class="display-5 fw-bold text-primary mb-2">
+                        <i class="fas fa-fire me-3"></i>Annonces Actives
+                    </h1>
+                    <p class="lead text-muted mb-0">
+                        Découvrez les meilleures enchères du moment
+                    </p>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-primary fs-6 px-3 py-2">
+                        {{ Listings.count }} annonce{{ Listings.count|pluralize }}
+                    </span>
+                </div>
             </div>
-        </div> 
-    {% endfor %}
-</div>    
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form action="{% url 'index' %}" method="POST" class="row g-3 align-items-end">
+                        {% csrf_token %}
+                        <div class="col-md-8 col-lg-9">
+                            <label for="category" class="form-label fw-semibold">
+                                <i class="fas fa-filter me-2"></i>Filtrer par catégorie :
+                            </label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="">Toutes les catégories</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.categoryName }}">{{ cat.categoryName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 col-lg-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-2"></i>Filtrer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if Listings %}
+        <!-- Listings Grid avec hauteurs égales -->
+        <div class="row g-4 listings-grid">
+            {% for listing in Listings %}
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                    <div class="card h-100 shadow-sm listing-card">
+                        <!-- Image Container -->
+                        <div class="position-relative">
+                            {% if listing.imageUrl %}
+                                <img src="{{ listing.imageUrl }}" 
+                                     class="card-img-top listing-image" 
+                                     alt="{{ listing.title }}"
+                                     style="height: 220px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                     style="height: 220px;">
+                                    <i class="fas fa-image text-muted fa-3x"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Status Badge -->
+                            {% if listing.isActive %}
+                                <span class="position-absolute top-0 end-0 m-2 badge bg-success">
+                                    <i class="fas fa-bolt me-1"></i>Actif
+                                </span>
+                            {% else %}
+                                <span class="position-absolute top-0 end-0 m-2 badge bg-secondary">
+                                    <i class="fas fa-lock me-1"></i>Fermé
+                                </span>
+                            {% endif %}
+
+                            <!-- Watchlist Indicator -->
+                            {% if user.is_authenticated and listing.id in user_watchlist_ids %}
+                                <div class="position-absolute top-0 start-0 m-2">
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-heart"></i>
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Body avec Flexbox -->
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-truncate mb-2" title="{{ listing.title }}">
+                                {{ listing.title }}
+                            </h5>
+                            
+                            <p class="card-text text-muted flex-grow-1 mb-3" style="font-size: 0.9rem;">
+                                {{ listing.description|truncatewords:12 }}
+                            </p>
+
+                            <!-- Price and Category Info -->
+                            <div class="mb-3">
+                                {% if listing.price %}
+                                    <div class="mb-2">
+                                        <span class="h5 text-success mb-0">
+                                            {{ listing.price.bid }}€
+                                        </span>
+                                        <small class="text-muted d-block">Prix actuel</small>
+                                    </div>
+                                {% endif %}
+
+                                {% if listing.category %}
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-tag me-1"></i>
+                                        {{ listing.category.categoryName }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Owner Info -->
+                            <div class="mb-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>
+                                    Par {{ listing.owner.username }}
+                                </small>
+                            </div>
+
+                            <!-- Action Buttons - Toujours en bas -->
+                            <div class="mt-auto">
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'listing' id=listing.id %}" 
+                                       class="btn btn-primary">
+                                        <i class="fas fa-eye me-2"></i>
+                                        Voir les détails
+                                    </a>
+                                    
+                                    {% if user.is_authenticated %}
+                                        {% if listing.id in user_watchlist_ids %}
+                                            <a href="{% url 'removeWatchlist' id=listing.id %}" 
+                                               class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-heart-broken me-1"></i>
+                                                Retirer de la watchlist
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'addWatchlist' id=listing.id %}" 
+                                               class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-heart me-1"></i>
+                                                Ajouter à la watchlist
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Info (optionnel pour plus tard) -->
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <p class="text-muted">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Cliquez sur "Voir les détails" pour enchérir sur un article
+                </p>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    <h3 class="text-muted mb-3">Aucune annonce active</h3>
+                    <p class="text-muted mb-4">
+                        Il n'y a actuellement aucune annonce active correspondant à vos critères.
+                    </p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Créer la première annonce
+                        </a>
+                    {% else %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'login' %}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Se connecter
+                            </a>
+                            <a href="{% url 'register' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>
+                                S'inscrire
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+/* Styles spécifiques pour les listings */
+.listing-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.listing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.listing-image {
+    transition: transform 0.3s ease;
+}
+
+.listing-card:hover .listing-image {
+    transform: scale(1.05);
+}
+
+.listings-grid {
+    min-height: 400px;
+}
+
+/* Assurer que toutes les cartes ont la même hauteur */
+.listings-grid .card {
+    display: flex;
+    flex-direction: column;
+}
+
+.listings-grid .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Style pour le formulaire de filtre */
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+@media (max-width: 576px) {
+    .display-5 {
+        font-size: 2rem;
+    }
+    
+    .listing-card .card-body {
+        padding: 1rem;
+    }
+    
+    .listing-image {
+        height: 180px !important;
+    }
+}
+</style>
 {% endblock %}
