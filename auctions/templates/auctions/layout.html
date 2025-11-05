@@ -55,26 +55,11 @@
                                     </a>
                                 </li>
                             {% endif %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle fw-semibold" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-th-large me-1"></i>
+                            <li class="nav-item">
+                                <a class="nav-link fw-semibold" href="{% url 'categories_list' %}">
+                                    <i class="fas fa-tags me-1"></i>
                                     Catégories
                                 </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}">
-                                        <i class="fas fa-th me-2"></i>Toutes les catégories
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}?category=Electronics">
-                                        <i class="fas fa-laptop me-2"></i>Électronique
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}?category=Fashion">
-                                        <i class="fas fa-tshirt me-2"></i>Mode
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'displayCategory' %}?category=Sports">
-                                        <i class="fas fa-dumbbell me-2"></i>Sports
-                                    </a></li>
-                                </ul>
                             </li>
                         </ul>
 

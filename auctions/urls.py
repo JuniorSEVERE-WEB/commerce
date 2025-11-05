@@ -18,5 +18,7 @@ urlpatterns = [
     path("addBid/<int:id>", views.addBid, name="addBid"),
     path("closeAuction/<int:id>", views.closeAuction, name="closeAuction"),
     
-    
+    # Routes pour les catégories
+    path("categories/", views.categories_list, name="categories_list"),
+    path("category/<str:categoryName>/", views.category_listings, name="category_listings"),
 ]

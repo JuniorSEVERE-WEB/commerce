@@ -1,34 +1,59 @@
 {% extends "auctions/layout.html" %}
 
-{% block title %}Annonces Actives - CommerceHub{% endblock %}
+{% block title %}{{ category.categoryName }} - CommerceHub{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
     <!-- Header Section -->
     <div class="row mb-4">
         <div class="col-12">
+            <!-- Navigation breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'index' %}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>Accueil
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'categories_list' %}" class="text-decoration-none">
+                            <i class="fas fa-tags me-1"></i>Catégories
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ category.categoryName }}</li>
+                </ol>
+            </nav>
+
             <div class="d-flex align-items-center justify-content-between flex-wrap">
                 <div class="mb-3 mb-md-0">
                     <h1 class="display-5 fw-bold text-primary mb-2">
-                        <i class="fas fa-fire me-3"></i>Annonces Actives
+                        {% if category.categoryName == "Électronique" %}
+                            <i class="fas fa-laptop me-3"></i>
+                        {% elif category.categoryName == "Mode" %}
+                            <i class="fas fa-tshirt me-3"></i>
+                        {% elif category.categoryName == "Maison" %}
+                            <i class="fas fa-home me-3"></i>
+                        {% elif category.categoryName == "Sports" %}
+                            <i class="fas fa-dumbbell me-3"></i>
+                        {% elif category.categoryName == "Livres" %}
+                            <i class="fas fa-book me-3"></i>
+                        {% else %}
+                            <i class="fas fa-folder me-3"></i>
+                        {% endif %}
+                        {{ category.categoryName }}
                     </h1>
                     <p class="lead text-muted mb-0">
-                        Découvrez les meilleures enchères du moment
+                        Découvrez toutes les enchères dans la catégorie {{ category.categoryName }}
                     </p>
                 </div>
                 <div class="text-end">
                     <span class="badge bg-primary fs-6 px-3 py-2">
                         {{ Listings.count }} annonce{{ Listings.count|pluralize }}
-                        {% if selected_category %}
-                            dans "{{ selected_category }}"
-                        {% endif %}
                     </span>
                 </div>
             </div>
         </div>
     </div>
-
-
 
     {% if Listings %}
         <!-- Listings Grid avec hauteurs égales -->
@@ -81,7 +106,7 @@
                                 {{ listing.description|truncatewords:12 }}
                             </p>
 
-                            <!-- Price and Category Info -->
+                            <!-- Price Info -->
                             <div class="mb-3">
                                 {% if listing.price %}
                                     <div class="mb-2">
@@ -90,13 +115,6 @@
                                         </span>
                                         <small class="text-muted d-block">Prix actuel</small>
                                     </div>
-                                {% endif %}
-
-                                {% if listing.category %}
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-tag me-1"></i>
-                                        {{ listing.category.categoryName }}
-                                    </span>
                                 {% endif %}
                             </div>
 
@@ -140,13 +158,13 @@
             {% endfor %}
         </div>
 
-        <!-- Pagination Info (optionnel pour plus tard) -->
+        <!-- Back to categories -->
         <div class="row mt-5">
             <div class="col-12 text-center">
-                <p class="text-muted">
-                    <i class="fas fa-info-circle me-2"></i>
-                    Cliquez sur "Voir les détails" pour enchérir sur un article
-                </p>
+                <a href="{% url 'categories_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Retour aux catégories
+                </a>
             </div>
         </div>
 
@@ -156,29 +174,36 @@
             <div class="col-12">
                 <div class="text-center py-5">
                     <div class="mb-4">
-                        <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
+                        {% if category.categoryName == "Électronique" %}
+                            <i class="fas fa-laptop text-muted" style="font-size: 4rem;"></i>
+                        {% elif category.categoryName == "Mode" %}
+                            <i class="fas fa-tshirt text-muted" style="font-size: 4rem;"></i>
+                        {% elif category.categoryName == "Maison" %}
+                            <i class="fas fa-home text-muted" style="font-size: 4rem;"></i>
+                        {% elif category.categoryName == "Sports" %}
+                            <i class="fas fa-dumbbell text-muted" style="font-size: 4rem;"></i>
+                        {% elif category.categoryName == "Livres" %}
+                            <i class="fas fa-book text-muted" style="font-size: 4rem;"></i>
+                        {% else %}
+                            <i class="fas fa-folder text-muted" style="font-size: 4rem;"></i>
+                        {% endif %}
                     </div>
-                    <h3 class="text-muted mb-3">Aucune annonce active</h3>
+                    <h3 class="text-muted mb-3">Aucune annonce dans {{ category.categoryName }}</h3>
                     <p class="text-muted mb-4">
-                        Il n'y a actuellement aucune annonce active correspondant à vos critères.
+                        Il n'y a actuellement aucune annonce active dans cette catégorie.
                     </p>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'create' %}" class="btn btn-primary">
-                            <i class="fas fa-plus-circle me-2"></i>
-                            Créer la première annonce
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="{% url 'categories_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Retour aux catégories
                         </a>
-                    {% else %}
-                        <div class="d-flex justify-content-center gap-3">
-                            <a href="{% url 'login' %}" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt me-2"></i>
-                                Se connecter
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Créer une annonce
                             </a>
-                            <a href="{% url 'register' %}" class="btn btn-outline-primary">
-                                <i class="fas fa-user-plus me-2"></i>
-                                S'inscrire
-                            </a>
-                        </div>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -186,7 +211,7 @@
 </div>
 
 <style>
-/* Styles spécifiques pour les listings */
+/* Styles identiques à index.html pour la cohérence */
 .listing-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     border: 1px solid rgba(0,0,0,0.1);
@@ -221,10 +246,9 @@
     flex-direction: column;
 }
 
-/* Style pour le formulaire de filtre */
-.form-select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+/* Style pour le breadcrumb */
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
 }
 
 @media (max-width: 576px) {

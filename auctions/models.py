@@ -6,10 +6,13 @@ class User(AbstractUser):
     pass
 
 class Category(models.Model):
-    categoryName = models.CharField(max_length=50)
+    categoryName = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.categoryName
+    
+    class Meta:
+        verbose_name_plural = "Categories"
 
     
 class Bid(models.Model):

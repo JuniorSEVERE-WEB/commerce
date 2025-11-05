@@ -1,9 +1,8 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.forms import AuthenticationForm
 
 from .models import User, Category, Listing, Comments, Bid
@@ -147,6 +146,7 @@ def addWatchlist(request, id):
 def index(request):
     activeListings = Listing.objects.filter(isActive=True)
     allCategories = Category.objects.all()
+    selected_category = None
     
     # Récupérer les watchlists de l'utilisateur connecté
     user_watchlist_ids = []
@@ -156,15 +156,19 @@ def index(request):
     if request.method == "POST":
         try:
             categoryFromForm = request.POST["category"]
-            category = Category.objects.get(categoryName=categoryFromForm)
-            activeListings = activeListings.filter(category=category)
+            # Vérifier si une catégorie spécifique a été sélectionnée (non vide)
+            if categoryFromForm and categoryFromForm.strip():
+                category = Category.objects.get(categoryName=categoryFromForm)
+                activeListings = activeListings.filter(category=category)
+                selected_category = categoryFromForm
         except (KeyError, Category.DoesNotExist):
             pass
     
     return render(request, "auctions/index.html", {
         "Listings": activeListings,
         "categories": allCategories,
-        "user_watchlist_ids": user_watchlist_ids
+        "user_watchlist_ids": user_watchlist_ids,
+        "selected_category": selected_category
     })
 
 def displayCategory(request):
@@ -179,6 +183,50 @@ def displayCategory(request):
     return render(request, "auctions/index.html", {
         "Listings": activeListings,
         "categories": allCategories
+    })
+
+def categories_list(request):
+    """Affiche toutes les catégories avec statistiques"""
+    categories = Category.objects.all()
+    
+    # Ajouter le nombre d'annonces par catégorie
+    categories_with_count = []
+    total_listings = 0
+    max_count = 0
+    most_popular_category = None
+    
+    for category in categories:
+        listing_count = Listing.objects.filter(category=category, isActive=True).count()
+        category.listing_count = listing_count
+        categories_with_count.append(category)
+        total_listings += listing_count
+        
+        # Trouver la catégorie la plus populaire
+        if listing_count > max_count:
+            max_count = listing_count
+            most_popular_category = category
+    
+    return render(request, "auctions/categories.html", {
+        "categories": categories_with_count,
+        "total_listings": total_listings,
+        "most_popular_category": most_popular_category
+    })
+
+def category_listings(request, categoryName):
+    """Affiche les annonces d'une catégorie spécifique"""
+    # Utiliser get_object_or_404 pour gérer les cas d'erreur automatiquement
+    category = get_object_or_404(Category, categoryName=categoryName)
+    activeListings = Listing.objects.filter(isActive=True, category=category)
+    
+    # Récupérer les watchlists de l'utilisateur connecté
+    user_watchlist_ids = []
+    if request.user.is_authenticated:
+        user_watchlist_ids = list(request.user.watching_listings.values_list('id', flat=True))
+    
+    return render(request, "auctions/category_listings.html", {
+        "category": category,
+        "Listings": activeListings,
+        "user_watchlist_ids": user_watchlist_ids
     })
 def createListing(request):
     if request.method == "GET":
